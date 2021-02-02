@@ -112,4 +112,4 @@ Default is `1`.
     - "Local" sessions: (a.k.a. "console") sessions representing a user who is logged into the machine locally (i.e. physically sitting at the machine). These include sessions where the user "locked" their session. There's no way to differentiate between these states, in this script's implementation.
     - "Remote" sessions: (a.k.a. "rdp-tcp") sessions representing a user who is actively logged in via a terminal (Remote Desktop) session.
     - "Disconnected" sessions: sessions representing a user who logged in via a terminal (Remote Desktop) session, but who disconnected from the session without logging out.
-- By mseng3
+- By mseng3. See my other projects here: https://github.com/mmseng/code-compendium.
