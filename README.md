@@ -8,15 +8,9 @@ The intended use is to get a list of computers for use in running a command, whe
 
 Note: Internally, this module makes use of a second custom module called `Get-Sessions`, which simply retrieves all sessions from the computer using the builtin `query session` (a.k.a. `qwinsta`) command and returns them in a proper Powershell object. The `Get-ComputersBySessionState` module then filters those sessions based on the given parameters, and returns the computer names associated with the filtered sessions.  
 
-1. Download the `Get-Sessions.psm1` module from here: https://github.com/engrit-illinois/Get-Sessions
-2. Import the `Get-Sessions` module:
-    1. `cd "c:\path\to\script\"`
-    2. `Import-Module ".\Get-Sessions.psm1"`
-3. Download the `Get-ComputersBySessionsState.psm1` module
-4. Import the `Get-ComputersBySessionState` module:
-    1. `cd "c:\path\to\script\"`
-    2. `Import-Module ".\Get-ComputersBySessionState.psm1"`
-5. Run it using the examples and documentation provided below
+1. Download `Get-Sessions.psm1` from https://github.com/engrit-illinois/Get-Sessions to `$HOME\Documents\WindowsPowerShell\Modules\Get-Sessions\Get-Sessions.psm1`
+2. Download `Get-ComputersBySessionsState.psm1` to `$HOME\Documents\WindowsPowerShell\Modules\Get-ComputersBySessionState\Get-ComputersBySessionState.psm1`
+3. Run it using the examples and documentation provided below
 
 # Examples
 
