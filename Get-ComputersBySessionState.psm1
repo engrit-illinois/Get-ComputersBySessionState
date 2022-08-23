@@ -123,7 +123,7 @@ function Get-ComputersBySessionState {
 		$i = 1
 		foreach($session in $sessions) {
 			log "Processing session #$i..." -level 3
-			log "Computer: $($session.COMPUTER), SessionName: $($session.SESSIONNAME), User: $($session.USERNAME), ID: $($session.ID), State: $($session.STATE), Type: $($session.TYPE), Device: $($session.DEVICE)" -level 4
+			log "Computer: $($session.COMPUTER), SessionName: $($session.SESSIONNAME), User: $($session.USERNAME), ID: $($session.ID), State: $($session.STATE), Idle time: $($session."IDLE TIME"), Logon datetime: $($session."LOGON DATETIME"), Type: $($session.TYPE), Device: $($session.DEVICE)" -level 4
 			
 			# There are also usually 2 other default sessions, named "services", "rdp-tcp", which have no USERNAME, that we don't care about
 			if(
@@ -195,6 +195,35 @@ function Get-ComputersBySessionState {
 		$filteredSessions
 	}
 	
+	function Deduplicate-Sessions($sessions) {
+		# Get-Sessions now returns duplicate sessions for user sessions, due to polling with both `query session` and `query user`
+		# Let's keep only the results from `query user`, since those include the "IDLE TIME" and "LOGON DATETIME" fields.
+		
+		$newSessions = @()
+		
+		# Get unique computer names
+		$compNames = $sessions | Select -ExpandProperty COMPUTER | Select -Unique
+		
+		# For each computer
+		$compNames | ForEach-Object {
+			$compName = $_
+			$compSessions = $sessions | Where { $_.COMPUTER -eq $compName }
+			
+			# Get all user sessions which have idle/logon time data
+			$goodUserSessions = $compSessions | Where { ($_.USERNAME -ne $null) -and ($_."LOGON DATETIME" -ne $null) }
+			
+			# Remove identical user sessions which do not have idle/logon time data
+			$goodUserSessions | ForEach-Object {
+				$goodUserSession = $_
+				$newCompSessions = $compSessions | Where { -not (($_.USERNAME -eq $goodUserSession.USERNAME) -and ($_."LOGON DATETIME" -eq "N/A")) }
+			}
+			
+			$newSessions += @($newCompSessions)
+		}
+		
+		$newSessions
+	}
+	
 	function Get-CompsFromSessions($sessions) {
 		$comps = @()
 		foreach($session in $sessions) {
@@ -211,13 +240,13 @@ function Get-ComputersBySessionState {
 	}
 	
 	function Order-Sessions($sessions) {
-		$sessions | Sort COMPUTER | Select -Property COMPUTER,USERNAME,SESSIONNAME,STATE,ID,TYPE,DEVICE
+		$sessions | Sort COMPUTER | Select -Property COMPUTER,USERNAME,SESSIONNAME,STATE,ID,"IDLE TIME","LOGON DATETIME"
 	}
 	
 	function Print-Sessions($sessions) {
 		log " " -nots
 		# The TYPE and DEVICE fields always seem to be empty, so omit them here, and reorgnaize the columns
-		$sessions = $sessions | Format-Table -Property COMPUTER,USERNAME,SESSIONNAME,STATE,ID
+		$sessions = $sessions | Format-Table -Property COMPUTER,USERNAME,SESSIONNAME,STATE,ID,"IDLE TIME","LOGON DATETIME"
 		$sessions = ($sessions | Out-String).Trim()
 		log $sessions -nots
 		log " " -nots
@@ -241,6 +270,7 @@ function Get-ComputersBySessionState {
 			}
 		}
 		$filteredSessions = Filter-Sessions $sessions
+		$filteredSessions = Deduplicate-Sessions $filteredSessions
 		$filteredSessions = Order-Sessions $filteredSessions
 		
 		if($GetSessionsInstead) {
