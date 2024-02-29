@@ -53,10 +53,11 @@ function Get-ComputersBySessionState {
 		param (
 			[string]$msg,
 			[int]$level=0,
-			[switch]$nots
+			[switch]$nots,
+			[switch]$warn
 		)
 		
-		if($Loud) {
+		if($Loud -or $warn) {
 			for($i = 0; $i -lt $level; $i += 1) {
 				$msg = "    $msg"
 			}
@@ -66,7 +67,8 @@ function Get-ComputersBySessionState {
 				$msg = "[$ts] $msg"
 			}
 			
-			Write-Host $msg
+			if($warn) {	Write-Warning $msg }
+			else { Write-Host $msg }
 			#$msg | Out-File $LOG -Append
 		}
 	}
@@ -167,7 +169,9 @@ function Get-ComputersBySessionState {
 						}
 					}
 					else {
-						throw "Unrecognized session type with session name: `"$($session.SESSIONNAME)`"!"
+						#throw "Unrecognized session type with session name: `"$($session.SESSIONNAME)`"!"
+						# There's actually no need to crash out here. Just throw a warning and continue without adding this session to the list of filtered sessions.
+						log "Unrecognized session type on computer `"$($session.COMPUTER)`" with session name: `"$($session.SESSIONNAME)`"!" -warn
 					}
 				}
 				# Disconnected sessions
@@ -183,7 +187,9 @@ function Get-ComputersBySessionState {
 						}
 					}
 					else {
-						throw "Unrecognized session type with no session name!"
+						#throw "Unrecognized session type with no session name!"
+						# There's actually no need to crash out here. Just throw a warning and continue without adding this session to the list of filtered sessions.
+						log "Unrecognized session type on computer `"$($session.COMPUTER)`" with no session name!" -warn
 					}
 				}
 			}
